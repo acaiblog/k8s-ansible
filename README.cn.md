@@ -20,16 +20,10 @@
 | v3.24           | 1.22/1.23/1.24/1.25 | [calico v3.24](https://projectcalico.docs.tigera.io/archive/v3.24/getting-started/kubernetes/requirements) |
 
 # 配置ansible环境
-安装pip
-```
-yum install -y python-pip
-```
-安装virtualenv
-```
-pip install virtualenv
-```
+
 拉取ansible脚本
 ```
+yum install -y git
 git clone https://gitee.com/acaiblog/ansible-k8s.git
 ```
 安装pypi包
@@ -42,9 +36,11 @@ pip3 install -r ansible-k8s/requestments.txt
 ```
 进入ansible-k8s目录，按照环境修改group_vars和inventory配置，执行节点初始化
 ```
+cd /root/ansible-k8s/
 ansible-playbook  -i inventory/hosts os-init.yaml
 ```
 部署k8s集群
 ```
+cd /root/ansible-k8s/
 ansible-playbook  -i inventory/hosts k8s.yaml
 ```

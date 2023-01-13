@@ -13,4 +13,5 @@
   systemd:
     name: docker
     state: started
+    enabled: yes
 

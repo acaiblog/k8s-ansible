@@ -1,7 +1,7 @@
 ---
 kubernetes_version: 1.14.0
 pod_cidr: 10.244.0.0/16
-image_repository: registry.aliyuncs.com/google_containers
+image_repository: registry.cn-shanghai.aliyuncs.com/ansible-k8s
 # calico/flannel/canel
 calico_version: v3.12
 k8s_network_plugin: calico

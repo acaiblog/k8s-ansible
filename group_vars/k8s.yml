@@ -3,5 +3,5 @@ kubernetes_version: 1.14.0
 pod_cidr: 10.244.0.0/16
 image_repository: registry.aliyuncs.com/google_containers
 # calico/flannel/canel
-calico_version: v3.9
+calico_version: v3.12
 k8s_network_plugin: calico

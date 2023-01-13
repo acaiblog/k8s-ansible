@@ -32,6 +32,8 @@ yum install -y python3 sshpass
 pip3 install virtualenv
 virtualenv ansible-env
 source /root/ansible-env/bin/activate
+#配置pip加速源
+cp ansible-k8s/roles/os-init/files/pip.conf /etc/
 pip3 install -r ansible-k8s/requestments.txt
 ```
 进入ansible-k8s目录，按照环境修改group_vars和inventory配置，执行节点初始化

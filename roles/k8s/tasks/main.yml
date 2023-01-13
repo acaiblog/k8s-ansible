@@ -1,0 +1,36 @@
+---
+# tasks file for roles/k8s
+- name: install package for k8s
+  yum:
+    name: "{{ item }}-{{ kubernetes_version }}"
+    state: present
+  with_items:
+    - kubectl
+    - kubelet
+    - kubeadm
+- block:
+    - name: init k8s cluster
+      shell: "kubeadm init --kubernetes-version=v{{ kubernetes_version }}  --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}  --ignore-preflight-errors=Swap  --image-repository registry.aliyuncs.com/google_containers --log-file /var/log/kubeadm-init.log "
+      failed_when: false
+
+    - name: create kube directory
+      file:
+        path: /root/.kube
+        state: directory
+
+    - name: create kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /root/.kube/config
+
+    - name: copy k8s network plugin
+      template:
+        src: "{{ k8s_plugin_yaml }}.j2"
+        dest: "/opt/{{ k8s_network_plugin }}.yaml"
+
+    - name: create calico
+      k8s:
+        src: "/opt/{{ k8s_network_plugin }}.yaml"
+        state: present
+
+  delegate_to: localhost

@@ -1,0 +1,25 @@
+---
+- name: copy docker yum file
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/yum.repos.d/{{ item }}"
+  with_items:
+    - kubernetes.repo
+    - docker-ce.repo
+    
+- name: install software
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ install_pkg }}"
+
+- name: copy chrony config
+  template:
+    src: chrony.conf.j2
+    dest: /etc/chrony.conf
+
+- name: startup chrony service
+  systemd:
+    name: chronyd
+    state: started
+    enabled: yes

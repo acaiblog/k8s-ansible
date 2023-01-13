@@ -1,0 +1,49 @@
+---
+- name: create redis directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0777
+  with_items:
+    - /opt/redis/conf
+    - /opt/redis/data
+    - /var/log/redis
+    - /var/log/redis-sentinel
+
+- name: copy redis node config
+  template:
+    src: redis.conf.j2
+    dest: /opt/redis/conf/redis.conf
+
+- name: copy redis node sentinel config
+  template:
+    src: redis-sentinel.conf.j2
+    dest: /opt/redis/conf/redis-sentinel.conf
+
+
+- name: start redis container
+  docker_container:
+    name: redis-server
+    image: "{{ deploy_node_ip }}:{{ registry_port }}/redis-master:v1.0"
+    network_mode: host
+    ports:
+      - "{{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}:6379:6379"
+    restart_policy: always
+    volumes:
+      - /opt/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - /var/log/redis:/var/log/redis
+    command: "/opt/csr/redis-3.2.6/bin/redis-server /usr/local/etc/redis/redis.conf"
+
+- name: start redis sentinel container
+  docker_container:
+    name: redis-sentinel
+    image: "{{ deploy_node_ip }}:{{ registry_port }}/redis-salve:v1.0"
+    network_mode: host
+    ports:
+      - "{{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}:26379:26379"
+    restart_policy: always
+    volumes:
+      - /opt/redis/conf/redis-sentinel.conf:/usr/local/etc/redis/redis.conf
+      - /var/log/redis-sentinel:/var/log/redis-sentinel
+    command: "/opt/csr/redis-3.2.6/bin/redis-sentinel /usr/local/etc/redis/redis.conf"
+

@@ -1,0 +1,7 @@
+---
+- hosts:
+    mysql
+  roles:
+    - { role: mysql, tags: mysql }
+
+

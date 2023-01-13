@@ -1,0 +1,14 @@
+---
+- name: Create mysql conf.d directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - /etc/mysql/conf.d
+    - /opt/scripts
+
+- name: Copy mariadb cluster config template
+  template:
+    src: mysql_server.cnf.j2
+    dest: /etc/mysql/conf.d/mysql_server.cnf

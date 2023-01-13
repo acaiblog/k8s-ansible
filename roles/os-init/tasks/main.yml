@@ -1,0 +1,11 @@
+---
+# tasks file for roles/init-os
+- include: os.yaml
+
+- include: yum.yaml
+
+- include: lvm.yml
+  tags: lvm
+
+- include: docker.yml
+  tags: docker

@@ -1,0 +1,52 @@
+---
+- name: Check if mariadb is running
+  shell: "docker ps |grep mariadb|wc -l"
+  register: mariadboutput
+
+- name: "set MARIADB to true"
+  set_fact:
+    MARIADB_RUNNING: True
+  when: mariadboutput.stdout.find('1') != -1
+
+- name: "set MARIADB to false"
+  set_fact:
+    MARIADB_RUNNING: False
+  when: mariadboutput.stdout.find('1') == -1
+
+- name: Check if bootstrap is needed
+  set_fact:
+    BOOTSTRAP_NEEDED: "{% set res = { 'status': True } %}{% for host in ansible_play_batch %}{% if hostvars[host].MARIADB_RUNNING %}{% if res.update({'status': False}) %}{% endif %}{% endif %}{% endfor %}{{res.status}}"
+
+- name: mariadb container in bootstrap node
+  docker_container:
+    name: mariadb
+    image: "{{image_name}}"
+    state: started
+    command: "{% if BOOTSTRAP_NEEDED %}--wsrep-new-cluster {% endif %}"
+    pull: true
+    restart_policy: always
+    network_mode: host
+    env:
+      MYSQL_ROOT_PASSWORD: "{{mysql_root_password}}"
+      MYSQL_INITDB_SKIP_TZINFO: "yes"
+    ports:
+      - "3306:3306"
+      - "4444:4444"
+      - "4567:4567/udp"
+      - "4567:4567"
+      - "4568:4568"
+    exposed:
+      - "3306"
+      - "4444"
+      - "4567/udp"
+      - "4567"
+      - "4568"
+    volumes:
+      - "{{mariadb_data_dir}}:/var/lib/mysql"
+      - "/etc/mysql/conf.d:/etc/mysql/conf.d"
+  when: inventory_hostname == ansible_play_batch[0]
+
+- name: wait some seconds to finish bootstrap
+  pause:
+    seconds: 30
+  when: inventory_hostname == ansible_play_batch[0] and BOOTSTRAP_NEEDED

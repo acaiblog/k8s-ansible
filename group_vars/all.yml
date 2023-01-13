@@ -1,0 +1,49 @@
+---
+#部署脚本目录
+pkg_directory: /opt
+
+api_interface: eth0
+
+#comments
+enable_mysql_ha: yes
+enable_redis_sentinel: yes
+
+#lvm配置
+vgdocker:
+  enabled: no
+  device: /dev/vdb
+  mount: /var/lib/docker
+
+vgdata: 
+  enabled: no
+  device: /dev/vdc
+  mount: /data
+
+vgpg:
+  enabled: no
+  device: /dev/vdd
+  mount: /var/lib/postgresql
+
+#docker registry
+deploy_node_ip: 10.0.0.121
+registry_port: 5000
+
+#mysql
+mysql:
+  port: 3306
+  root_password: 123
+  data_dir: /var/lib/mysql
+  users:
+    - user: test
+      password: 123
+    - user: test1
+      password: 123
+  databases:
+    - test
+    - test1
+
+#redis
+redis:
+  port: 6379
+  sentinel_port: 26379
+  password: 123

@@ -1,0 +1,67 @@
+---
+- name: config pip
+  copy:
+    src: pip.conf
+    dest: /etc/pip.conf
+
+- name: Copy host to per nodes
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+
+- name: create {{ ansible_ssh_user }} ssh key
+  user:
+    name: "{{ ansible_ssh_user }}"
+    generate_ssh_key: yes
+  delegate_to: localhost
+  run_once: yes
+
+- name: copy ssh key file
+  copy:
+    src: "{{ ansible_user_dir }}/.ssh/id_rsa.pub"
+    dest: "{{ ansible_user_dir }}/.ssh/authorized_keys"
+    mode: 0600
+  
+- name: set timezone
+  timezone:
+    name: 'Asia/Shanghai'
+
+- name: disable firewalld
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+
+- name: set SELINUX to Disabled
+  lineinfile:
+    dest: '/etc/selinux/config'
+    regexp: '^SELINUX=.*'
+    line: 'SELINUX=disabled'
+    state: present
+
+- name: setting sysctl conf
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    reload: yes
+  with_items:
+    - { key: 'net.core.somaxconn', value: '32768' }
+    - { key: 'net.ipv4.ip_forward', value: '1' }
+
+- name: setting limits
+  pam_limits:
+    dest: "{{ item.dest }}"
+    domain: "*"
+    limit_type: "{{ item.limit_type }}"
+    limit_item: "{{ item.limit_item }}"
+    value: "{{ item.value }}"
+  with_items:
+    - { dest: '/etc/security/limits.conf', limit_type: 'soft', limit_item: 'nofile', value: '65535' }
+    - { dest: '/etc/security/limits.conf', limit_type: 'hard', limit_item: 'nofile', value: '65535' }
+    - { dest: '/etc/security/limits.conf', limit_type: 'soft', limit_item: 'nproc', value: '65535' }
+    - { dest: '/etc/security/limits.conf', limit_type: 'hard', limit_item: 'nproc', value: '65535' }
+
+- name: modify hostname for node
+  hostname:
+    name: "{{ hostname }}"

@@ -1,0 +1,9 @@
+---
+# defaults file for roles/mysql
+image_name: "{{ deploy_node_ip }}:{{ registry_port }}/mariadb:10.3.10"
+mysql_root_password: "{{ mysql.root_password }}"
+mariadb_data_dir: "{{ mysql.data_dir }}"
+docker_api_version: 1.22
+mariadb_cluster_enabled: "{{ enable_mysql_ha }}"
+users: "{{ mysql.users }}"
+databases: "{{ mysql.databases }}"

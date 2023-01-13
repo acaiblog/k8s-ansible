@@ -1,0 +1,37 @@
+---
+- name: Create database users
+  mysql_user:
+    login_user: root
+    login_password: "{{mysql_root_password}}"
+    login_host: "{{inventory_hostname}}"
+    name: "{{item.user}}"
+    password: "{{item.password}}"
+    priv: '*.*:ALL,GRANT'
+    host: "%"
+  with_items: "{{ users }}"
+  run_once: true
+#  loop_control:
+#    label: "{{item.user}}"
+
+- name: Create databases
+  mysql_db:
+    name: "{{item}}"
+    state: present
+    login_user: root
+    login_password: "{{mysql_root_password}}"
+    login_host: "{{inventory_hostname}}"
+  with_items: "{{ databases }}"
+  run_once: true
+
+- name: copy mysql backup script to /opt directory
+  template:
+    src: backup_mysql.sh.j2
+    dest: /opt/scripts/backup_mysql.sh
+    mode: 0755
+
+- name: create crontab backup mysql 
+  cron:
+    name: backup mysql database quickbi
+    minute: "5"
+    hour: "4"
+    job: "/bin/bash /opt/scripts/backup_mysql.sh >> /opt/scripts/backup_mysql.log 2>&1"

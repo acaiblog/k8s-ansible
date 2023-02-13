@@ -44,5 +44,10 @@ ansible-playbook  -i inventory/hosts os-init.yaml
 部署k8s集群
 ```
 cd /root/ansible-k8s/
-ansible-playbook  -i inventory/hosts k8s.yaml
+ansible-playbook  -i inventory/hosts -e "action=deploy" k8s.yaml
+```
+升级k8s集群
+```
+cd /root/ansible-k8s/
+ansible-playbook -I inventory/hosts -e "action=upgrade"
 ```

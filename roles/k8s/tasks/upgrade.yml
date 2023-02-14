@@ -1,0 +1,23 @@
+---
+- name: upgrade package for k8s
+  yum:
+    name: "{{ item }}-{{ kubernetes_version }}"
+    state: present
+  with_items:
+    - kubectl
+    - kubelet
+    - kubeadm
+
+- name: upgrade k8s cluster
+  shell: "kubeadm upgrade apply {{ kubernetes_version }} -y"
+  when: inventory_hostname in groups['k8s-master']
+
+- name: upgrade k8s node
+  shell: "kubeadm upgrade node"
+  when: inventory_hostname in groups['k8s-master'][0]
+
+- name: restart kubelet service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: kubelet

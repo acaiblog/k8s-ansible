@@ -1,49 +1,9 @@
 ---
 # tasks file for roles/k8s
-- name: install package for k8s
-  yum:
-    name: "{{ item }}-{{ kubernetes_version }}"
-    state: present
-  with_items:
-    - kubectl
-    - kubelet
-    - kubeadm
-- block:
-    - name: init k8s cluster
-      shell: "kubeadm init --kubernetes-version=v{{ kubernetes_version }}  --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}  --ignore-preflight-errors=Swap  --image-repository registry.aliyuncs.com/google_containers --log-file /var/log/kubeadm-init.log "
-      failed_when: false
+- name: deploy k8s cluster
+  include: deploy.yml
+  when: action == "deploy"
 
-    - name: create kube directory
-      file:
-        path: /root/.kube
-        state: directory
-
-    - name: create kube config
-      copy:
-        src: /etc/kubernetes/admin.conf
-        dest: /root/.kube/config
-
-    - name: download calico deployment
-      uri:
-        url: "https://docs.projectcalico.org/archive/{{ calico_version }}/manifests/calico.yaml"
-        method: GET
-        validate_certs: no
-        dest: /opt
-      register: download_result
-      until: download_result.status == 200
-      retries: 3
-      delay: 3
-
-    - name: create calico directory
-      file:
-        path: /var/lib/calico
-        state: directory
-
-    - name: create calico pod for k8s cluster
-      k8s:
-        state: present
-        src: "/opt/{{ k8s_network_plugin }}.yaml"
-        
-      
-
-  delegate_to: localhost
+- name: upgrade k8s cluster
+  include: upgrade.yml
+  when: action == "upgrade"

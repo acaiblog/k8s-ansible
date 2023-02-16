@@ -1,0 +1,3 @@
+---
+# defaults file for roles/k8s
+k8s_plugin_yaml: "{{ k8s_network_plugin }}.yaml"

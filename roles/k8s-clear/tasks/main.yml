@@ -1,0 +1,47 @@
+---
+# tasks file for roles/k8s_clear
+- name: clear k8s cluster
+  shell: "kubeadm reset -f"
+  when: inventory_hostname in groups['k8s-master'][0]
+
+- name: delete cni directory
+  file:
+    path: /etc/cni/net.d
+    state: absent
+
+- name: clear iptables rules
+  iptables:
+    flush: yes
+
+- name: getting iptables calico chain
+  shell: "iptables -nL|grep Chain|grep cali|awk '{print $2}'"
+  register: iptables_chain
+
+- name: clean iptables calico chain
+  shell: "iptables -X {{ item }}"
+  with_items:
+    - "{{ iptables_chain.stdout_lines }}"
+
+- name: getting iptables docker chain
+  shell: "iptables -nL|grep Chain|grep DOCKER|awk '{print $2}'"
+  register: iptables_docker_chain
+
+- name: clean iptables docker chain
+  shell: "iptables -X {{ item }}"
+  with_items:
+    - "{{ iptables_docker_chain.stdout_lines }}"
+
+- name: getting iptables kube chain
+  shell: "iptables -nL|grep Chain|grep KUBE|awk '{print $2}'"
+  register: iptables_docker_chain
+
+- name: clean iptables kube chain
+  shell: "iptables -X {{ item }}"
+  with_items:
+    - "{{ iptables_docker_chain.stdout_lines }}"
+
+- name: save iptables rules
+  shell: "service iptables save"
+  notify:
+    - Restart docker service
+  failed_when: false

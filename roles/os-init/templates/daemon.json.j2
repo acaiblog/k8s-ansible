@@ -1,0 +1,12 @@
+{
+"insecure-registries": ["{{ deploy_node_ip }}:{{ registry_port }}"],
+"storage-driver": "overlay2",
+"storage-opts": ["overlay2.override_kernel_check=true"],
+"max-concurrent-downloads": 10,
+"max-concurrent-uploads": 10,
+"log-driver": "json-file",
+"log-opts": {
+    "max-size": "100m",
+    "max-file": "3"
+    }
+}

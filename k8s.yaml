@@ -1,0 +1,8 @@
+---
+
+- hosts:
+    k8s
+  roles:
+    - { role: k8s, tags: k8s }
+
+

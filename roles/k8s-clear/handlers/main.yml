@@ -1,0 +1,6 @@
+---
+# handlers file for roles/k8s_clear
+- name: Restart docker service
+  systemd:
+    name: docker
+    state: restarted

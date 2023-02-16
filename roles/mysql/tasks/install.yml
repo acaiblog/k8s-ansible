@@ -1,0 +1,108 @@
+---
+- name: Run mysql_upgrade just in case
+  shell: docker exec mariadb mysql_upgrade -uroot -p{{mysql_root_password}}
+  when: inventory_hostname == ansible_play_batch[0]
+  failed_when: false
+
+- name: create mysql dir in {{mariadb_data_dir}} just for the not bootstrap nodes
+  file:
+    path: "{{mariadb_data_dir}}/mysql"
+    state: directory
+  when: inventory_hostname == ansible_play_batch[0]
+
+- name: mariadb container
+  docker_container:
+    name: mariadb
+    image: "{{image_name}}"
+    state: started
+    command: "--wsrep_node_address={{ ansible_default_ipv4['address'] }}  --wsrep_node_name={{inventory_hostname}}"
+    pull: true
+    docker_api_version: "{{ docker_api_version }}"
+    restart_policy: always
+    network_mode: host
+    env:
+      MYSQL_ROOT_PASSWORD: "{{mysql_root_password}}"
+      MYSQL_INITDB_SKIP_TZINFO: "yes"
+    ports:
+      - "3306:3306"
+      - "4444:4444"
+      - "4567:4567/udp"
+      - "4567:4567"
+      - "4568:4568"
+    exposed:
+      - "3306"
+      - "4444"
+      - "4567/udp"
+      - "4567"
+      - "4568"
+    volumes:
+      - "{{mariadb_data_dir}}:/var/lib/mysql"
+      - "/etc/mysql/conf.d:/etc/mysql/conf.d"
+  when: inventory_hostname != ansible_play_batch[0]
+
+- name: wait until node is synced
+  command: docker logs mariadb
+  register: outputlog
+  until: '"JOINED" in outputlog.stderr'
+  retries: 5
+  delay: 10
+  when: mariadb_cluster_enabled
+
+- name: wait some seconds
+  pause:
+    seconds: 60
+  when: inventory_hostname == ansible_play_batch[0] and BOOTSTRAP_NEEDED and mariadb_cluster_enabled
+
+- name: mariadb container
+  docker_container:
+    name: mariadb
+    state: absent
+  when: inventory_hostname == ansible_play_batch[0] and BOOTSTRAP_NEEDED and mariadb_cluster_enabled
+
+- name: wait some seconds
+  pause:
+    seconds: 30
+  when: inventory_hostname == ansible_play_batch[0] and BOOTSTRAP_NEEDED and mariadb_cluster_enabled
+
+- name: mariadb container
+  docker_container:
+    name: mariadb
+    image: "{{image_name}}"
+    state: started
+    command: "--wsrep_node_address={{ ansible_default_ipv4['address'] }}  --wsrep_node_name={{inventory_hostname}}"
+    pull: true
+    docker_api_version: "{{ docker_api_version }}"
+    restart_policy: always
+    network_mode: host
+    env:
+      MYSQL_ROOT_PASSWORD: "{{mysql_root_password}}"
+      MYSQL_INITDB_SKIP_TZINFO: "yes"
+    ports:
+      - "3306:3306"
+      - "4444:4444"
+      - "4567:4567/udp"
+      - "4567:4567"
+      - "4568:4568"
+    exposed:
+      - "3306"
+      - "4444"
+      - "4567/udp"
+      - "4567"
+      - "4568"
+    volumes:
+      - "{{mariadb_data_dir}}:/var/lib/mysql"
+      - "/etc/mysql/conf.d:/etc/mysql/conf.d"
+  when: inventory_hostname == ansible_play_batch[0] and BOOTSTRAP_NEEDED and mariadb_cluster_enabled
+
+- name: wait until node is synced
+  command: docker logs mariadb
+  register: outputlog
+  until: '"JOINED" in outputlog.stderr'
+  retries: 5
+  delay: 10
+  when: inventory_hostname == ansible_play_batch[0] and BOOTSTRAP_NEEDED and mariadb_cluster_enabled
+
+- name: wait some seconds
+  pause:
+    seconds: 30
+  when: mariadb_cluster_enabled

@@ -1,0 +1,7 @@
+---
+- hosts:
+    redis
+  roles:
+    - { role: redis, tags: redis }
+
+

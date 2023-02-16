@@ -1,0 +1,178 @@
+---
+
+- name: create a new primary partition
+  parted:
+    device: "{{ item.name }}"
+    number: 1
+    flags: [ lvm ]
+    state: present
+  when: 
+    - item.enabled | bool
+    - inventory_hostname  in groups[item.group]
+  with_items:
+    - { name: "{{ vgdocker.device }}", enabled: "{{ vgdocker.enabled }}", group: "{{ vg.docker.group }}" }
+    - { name: "{{ vgdata.device }}", enabled: "{{ vgdata.enabled }}", group: "{{ vg.data.group }}" }
+    - { name: "{{ vgpg.device }}", enabled: "{{ vgpg.enabled }}", group: "{{ vg.pg.group }}" }
+
+- name: Create volume group
+  lvg:
+    vg: "{{ item.vg }}" 
+    pvs: "{{ item.pv }}1"
+  when: 
+    - item.enabled | bool
+    - inventory_hostname in groups[item.group]
+  with_items:
+    - { vg: "{{ vg.docker.name }}", pv: "{{ vgdocker.device }}", enabled: "{{ vgdocker.enabled }}", group: "{{ vg.docker.group }}" }
+    - { vg: "{{ vg.data.name }}", pv: "{{ vgdata.device }}", enabled: "{{ vgdata.enabled }}", group: "{{ vg.data.group }}" }
+    - { vg: "{{ vg.pg.name }}", pv: "{{ vgpg.device }}", enabled: "{{ vgpg.enabled }}", group: "{{ vg.pg.group }}" }
+  register: lvm_partition_status_results
+
+- name: Create a logical volume the size of all remaining space in the volume group
+  lvol:
+    vg: "{{ item.vg }}"
+    lv: "{{ item.lv }}"
+    size: 100%FREE
+  failed_when: false
+  when: 
+    - item.enabled | bool
+    - inventory_hostname in groups[item.group]
+  with_items:
+    - { vg: "{{ vg.docker.name }}", lv: "{{ vg.docker.lv_name }}", enabled: "{{ vgdocker.enabled }}", group: "{{ vg.docker.group }}" }
+    - { vg: "{{ vg.data.name }}", lv: "{{ vg.data.lv_name }}", enabled: "{{ vgdata.enabled }}", group: "{{ vg.data.group }}" }
+    - { vg: "{{ vg.pg.name }}", lv: "{{ vg.pg.lv_name }}", enabled: "{{ vgpg.enabled }}", group: "{{ vg.pg.group }}" }
+
+- name: create vgdocker mount directory
+  file:
+    path: "{{ item.path }}"
+    state: directory
+  when: 
+    - item.enabled | bool
+    - inventory_hostname in groups[item.group]
+  with_items:
+    - { path: "{{ vgdocker.mount }}", enabled: "{{ vgdocker.enabled }}", group: "{{ vg.docker.group }}" }
+    - { path: "{{ vgdata.mount }}", enabled: "{{ vgdata.enabled }}", group: "{{ vg.data.group }}" }
+    - { path: "{{ vgpg.mount }}", enabled: "{{ vgpg.enabled }}", group: "{{ vg.pg.group }}" }
+
+- name: Get vgdocker device
+  shell: "ls /dev/mapper|grep {{ item.vg }}"
+  when: 
+    - item.enabled | bool
+    - inventory_hostname in groups[item.group]
+  with_items:
+    - { vg: "{{ vg.docker.name }}", enabled: "{{ vgdocker.enabled }}", group: "{{ vg.docker.group }}" }
+  register: vgdocker_result
+
+- name: Format xfs for vgdocker
+  filesystem:
+    fstype: xfs
+    dev: "/dev/mapper/{{ vgdocker_result.results | map(attribute='stdout') }}"
+  when: 
+    - item.enabled | bool
+    - inventory_hostname in groups[item.group]
+  failed_when: false
+  with_items:
+    - { enabled: "{{ vgdocker.enabled }}", group: "{{ vg.docker.group }}" }
+
+- name: Get vgdata device 
+  shell: "ls /dev/mapper|grep {{ item.vg }}"
+  when: 
+    - item.enabled | bool
+    - inventory_hostname in groups[item.group]
+  with_items:
+    - { vg: "{{ vg.data.name }}", enabled: "{{ vgdata.enabled }}", group: "{{ vg.data.group }}"}
+  register: vgdata_result
+
+- name: Format xfs for vgdata
+  filesystem:
+    fstype: xfs
+    dev: "/dev/mapper/{{ vgdata_result.results | map(attribute='stdout') }}"
+  when: 
+    - item.enabled | bool
+    - inventory_hostname in groups[item.group]
+  failed_when: false
+  with_items:
+    - { enabled: "{{ vgdocker.enabled }}", group: "{{ vg.data.group }}" }
+
+
+- name: Get vgpg device
+  shell: "ls /dev/mapper|grep {{ item.vg }}"
+  when: 
+    - item.enabled | bool
+    - inventory_hostname in groups[item.group]
+  with_items:
+    - { vg: "{{ vg.pg.name }}", enabled: "{{ vgpg.enabled }}", group: "{{ vg.pg.group }}" }
+  register: vgpg_result
+
+- name: Format xfs for vgpg
+  filesystem:
+    fstype: xfs
+    dev: "/dev/mapper/{{ vgpg_result.results | map(attribute='stdout') }}"
+  when: 
+    - item.enabled | bool
+    - inventory_hostname in groups[item.group]
+  failed_when: false
+  with_items:
+    - { enabled: "{{ vgdocker.enabled }}", group: "{{ vg.data.group }}" }
+
+- name: get vgdocker uuid
+  shell: "blkid |grep vgdocker|awk '{print $2}'"
+  when: 
+    - inventory_hostname in groups[item.group]
+    - item.enabled | bool
+  with_items:
+    - { enabled: "{{ vgdocker.enabled }}", group: "{{ vg.docker.group }}" }
+  register: vgdocker_uuid_result
+
+- name: mount vgdocker to {{ vgdocker.mount }}
+  mount:
+    path: "{{ item.mount }}"
+    src: "{{ vgdocker_uuid_result.results[0].stdout }}"
+    fstype: xfs
+    state: mounted
+  when: 
+    - inventory_hostname in groups[item.group]
+    - item.enabled | bool
+  with_items:
+    - { mount: "{{ vgdocker.mount }}", enabled: "{{ vgdocker.enabled }}", group: "{{ vg.docker.group }}" }
+
+- name: get vgdata uuid
+  shell: "blkid |grep vgdata|awk '{print $2}'"
+  when: 
+    - inventory_hostname in groups[item.group]
+    - item.enabled | bool
+  with_items:
+    - { enabled: "{{ vgdata.enabled }}", group: "{{ vg.data.group }}" }
+  register: vgdata_uuid_result
+
+- name: mount vgdata to {{ vgdocker.mount }}
+  mount:
+    path: "{{ item.mount }}"
+    src: "{{ vgdata_uuid_result.results[0].stdout }}"
+    fstype: xfs
+    state: mounted
+  when: 
+    - inventory_hostname in groups[item.group]
+    - item.enabled | bool
+  with_items:
+    - { mount: "{{ vgdata.mount }}", enabled: "{{ vgdata.enabled }}", group: "{{ vg.data.group }}" }
+
+- name: get vgpg uuid
+  shell: "blkid |grep vgpg|awk '{print $2}'"
+  when: 
+    - inventory_hostname in groups[item.group]
+    - item.enabled | bool
+  with_items:
+    - { enabled: "{{ vgpg.enabled }}", group: "{{ vg.pg.group }}" }
+  register: vgpg_uuid_result
+
+- name: mount vgpg to {{ vgpg.mount }}
+  mount:
+    path: "{{ item.mount }}"
+    src: "{{ vgpg_uuid_result.results[0].stdout }}"
+    fstype: xfs
+    state: mounted
+  when: 
+    - inventory_hostname in groups[item.group]
+    - item.enabled | bool
+  with_items:
+    - { mount: "{{ vgpg.mount }}", enabled: "{{ vgpg.enabled }}", group: "{{ vg.pg.group }}" }

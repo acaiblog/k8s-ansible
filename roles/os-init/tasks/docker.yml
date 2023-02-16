@@ -1,0 +1,17 @@
+---
+- name: create docker directory /etc/docker
+  file:
+    path: /etc/docker
+    state: directory
+
+- name: copy daemon.json for docker
+  template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+
+- name: started docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+

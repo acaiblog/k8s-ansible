@@ -1,0 +1,9 @@
+---
+# tasks file for roles/mysql
+- include: pre_install.yml
+
+- include: bootstrap.yml
+
+- include: install.yml
+
+- include: post_install.yml

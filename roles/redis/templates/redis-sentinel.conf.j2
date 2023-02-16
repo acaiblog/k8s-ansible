@@ -1,0 +1,9 @@
+port "{{ redis.sentinel_port }}"
+dir /tmp
+logfile "/var/log/redis-sentinel/redis-sentinel.log"
+{% set redis_master_address = hostvars[groups['redis'][0]]['ansible_' + hostvars[groups['redis'][0]]['api_interface']]['ipv4']['address'] %}
+sentinel monitor mymaster {{ redis_master_address }} {{ redis.port }} 2
+sentinel auth-pass mymaster {{ redis.password }}
+sentinel down-after-milliseconds mymaster 3000
+sentinel parallel-syncs mymaster 1
+sentinel failover-timeout mymaster 60000

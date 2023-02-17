@@ -6,8 +6,11 @@
 
 - name: delete cni directory
   file:
-    path: /etc/cni/net.d
+    path: "{{ item }}"
     state: absent
+  with_items:
+    - /var/lib/etcd
+    - /etc/cni/net.d
 
 - name: clear iptables rules
   iptables:

@@ -2,15 +2,22 @@
 # tasks file for roles/k8s
 - name: install package for k8s
   yum:
-    name: "{{ item }}-{{ kubernetes_version }}"
+    name: "{{ item }}-{{ kubernetes_version[1:] }}"
     state: present
   with_items:
     - kubectl
     - kubelet
     - kubeadm
+
+- name: startup kubelet service
+  systemd:
+    name: kubelet
+    state: started
+    enabled: yes
+
 - block:
     - name: init k8s cluster
-      shell: "kubeadm init --kubernetes-version=v{{ kubernetes_version }}  --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}  --ignore-preflight-errors=Swap  --image-repository registry.aliyuncs.com/google_containers --log-file /var/log/kubeadm-init.log "
+      shell: "kubeadm init --kubernetes-version={{ kubernetes_version }}  --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}  --ignore-preflight-errors=Swap  --image-repository {{ image_repository }} --log-file /var/log/kubeadm-init.log"
       failed_when: false
 
     - name: create kube directory

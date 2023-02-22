@@ -1,5 +1,5 @@
 [k8s-master]
-k8s-master-01 hostname=k8s-master-01
+10.0.0.121 hostname=k8s-master-01
 
 [k8s-worker]
 
@@ -25,5 +25,5 @@ k8s-worker
 
 [all:vars]
 ansible_ssh_user=root
-ansible_ssh_pass=1800409888
+ansible_ssh_pass=123456
 ansible_ssh_port=22

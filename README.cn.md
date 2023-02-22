@@ -36,18 +36,12 @@ source /root/ansible-env/bin/activate
 cp ansible-k8s/roles/os-init/files/pip.conf /etc/
 pip3 install -r ansible-k8s/requestments.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
-进入ansible-k8s目录，按照环境修改group_vars和inventory配置，执行节点初始化
+进入ansible-k8s目录，按照环境修改group_vars和inventory配置,部署k8s集群
 ```
 cd /root/ansible-k8s/
-ansible-playbook  -i inventory/hosts os-init.yaml
+python deploy.py --action deploy
 ```
-部署k8s集群
+在group_vars/k8s.yml配置文件中修改k8s版本和calico版本，执行以下命令升级集群
 ```
-cd /root/ansible-k8s/
-ansible-playbook  -i inventory/hosts -e "action=deploy" k8s.yaml
-```
-升级k8s集群
-```
-cd /root/ansible-k8s/
-ansible-playbook -I inventory/hosts -e "action=upgrade"
+python deploy.py --action upgrade
 ```

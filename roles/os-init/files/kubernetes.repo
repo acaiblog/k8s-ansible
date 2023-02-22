@@ -1,5 +1,5 @@
 [kubernetes]
 name=kubernetes
-baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+baseurl=https://mirrors.ustc.edu.cn/kubernetes/yum/repos/kubernetes-el7-\$basearch
 gpgcheck=0
 enabled=1

@@ -1,11 +1,26 @@
 ---
+- name: find repo files
+  find:
+    paths: /etc/yum.repos.d
+    patterns: "*.repo"
+  register: repo_files
+
+- name: delete yum files
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items:
+    - "{{ repo_files.files }}" 
+
 - name: copy docker yum file
   copy:
     src: "{{ item }}"
     dest: "/etc/yum.repos.d/{{ item }}"
   with_items:
-    - kubernetes.repo
-    - docker-ce.repo
+    - "{{ arch[ansible_architecture]['base']}}"
+    - "epel.repo"
+    - "docker-ce.repo"
+    - "kubernetes.repo"
     
 - name: install software
   yum:

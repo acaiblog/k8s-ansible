@@ -36,3 +36,8 @@ vg:
     lv_name: '{{ 99999 | random }}'
 
 chrony_server: "{{ deploy_node_ip }}"
+arch:
+  x86_64:
+    base: 'CentOS-Base.repo'
+  arm64:
+    base: 'CentOS-altarch-7.repo'

@@ -15,7 +15,7 @@ def cmd(action):
     logging.debug("action: %s" %action)
     if action != 'destroy':
       os.system('ansible-playbook  -i inventory/hosts -e "action=%s" os-init.yaml' %action)
-      os.system('ansible-playbook  -i inventory/hosts -e "action=%s" k8s.yaml' %action)
+      os.system('ansible-playbook  -i inventory/hosts -e "action=%s" k8s.yaml -v' %action)
     elif action == 'destroy':
       os.system('ansible-playbook -i inventory/hosts k8s-clear.yaml')
 

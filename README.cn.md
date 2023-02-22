@@ -41,7 +41,11 @@ pip3 install -r ansible-k8s/requestments.txt -i https://pypi.tuna.tsinghua.edu.c
 cd /root/ansible-k8s/
 python deploy.py --action deploy
 ```
-在group_vars/k8s.yml配置文件中修改k8s版本和calico版本，执行以下命令升级集群
+如果需要升级集群,在group_vars/k8s.yml配置文件中修改k8s版本和calico版本，执行以下命令升级集群
 ```
 python deploy.py --action upgrade
+```
+如果需要清理k8s集群，执行
+```
+python deploy.py --action destroy
 ```

@@ -29,7 +29,7 @@ git clone https://gitee.com/acaiblog/ansible-k8s.git
 安装pypi包
 ```
 yum install -y python3 sshpass
-pip3 install virtualenv
+pip3 install virtualenv -i https://pypi.tuna.tsinghua.edu.cn/simple
 virtualenv env-ansible
 source /root/env-ansible/bin/activate
 pip3 install -r ansible-k8s/requestments.txt -i https://pypi.tuna.tsinghua.edu.cn/simple

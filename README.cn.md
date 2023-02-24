@@ -30,15 +30,13 @@ git clone https://gitee.com/acaiblog/ansible-k8s.git
 ```
 yum install -y python3 sshpass
 pip3 install virtualenv
-virtualenv ansible-env
-source /root/ansible-env/bin/activate
-#配置pip加速源
-cp ansible-k8s/roles/os-init/files/pip.conf /etc/
+virtualenv env-ansible
+source /root/env-ansible/bin/activate
 pip3 install -r ansible-k8s/requestments.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
-进入ansible-k8s目录，按照环境修改group_vars和inventory配置,部署k8s集群
+进入k8s-ansible目录，按照环境修改group_vars和inventory配置,部署k8s集群
 ```
-cd /root/ansible-k8s/
+cd /root/k8s-ansible/
 python deploy.py --action deploy
 ```
 如果需要升级集群,在group_vars/k8s.yml配置文件中修改k8s版本和calico版本，执行以下命令升级集群

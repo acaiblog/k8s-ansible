@@ -19,3 +19,8 @@
     daemon_reload: yes
     enabled: yes
     state: started
+
+- name: create crictl config file
+  copy:
+    src: crictl.yaml
+    dest: /etc/crictl.yaml

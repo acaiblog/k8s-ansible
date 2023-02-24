@@ -7,6 +7,24 @@
     - kubelet
     - kubeadm
 
+#- name: Configure kubelet systemd service
+#  become: yes
+#  become_user: root
+#  blockinfile:
+#    path: /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
+#    block: |
+#      [Service]
+#      ExecStart=
+#      ExecStart=/usr/bin/kubelet --log-file=/var/log/kubelet.log
+#    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+#  notify: restart kubelet service
+
+- name: confiure nerctl
+  copy:
+    src: nerdctl
+    dest: /usr/local/bin
+    mode: 0755
+
 - name: startup kubelet service
   systemd:
     name: kubelet
@@ -17,18 +35,39 @@
   debug:
     msg: "{{ coredns_version[kubernetes_version] }}"
 
-- name: Pull CoreDNs image
+- name: Pull CoreDNS image for containerd
+  crictl:
+    image: "{{ image_repository }}/coredns"
+    tag: "{{ coredns_version[kubernetes_version] }}"
+    state: pull
+  when: kubernetes_version is version_compare('v1.22.0', '>=')
+
+- name: Pull CoreDNs image for docker
   docker_image:
     name: "{{ image_repository }}/coredns"
     repository: "{{ image_repository }}"
     tag: "{{ coredns_version[kubernetes_version] }}"
     source: pull
+  when: kubernetes_version is version_compare('v1.22.0', '<')
 
-- name: add tag for coredns image
+- name: CoreDNS Image add tag for docker
   docker_image:
     name: "{{ image_repository }}/coredns:{{ coredns_version[kubernetes_version] }}"
     repository: "{{ image_repository }}/coredns/coredns:{{ coredns_version[kubernetes_version] }}"
     source: local
+  when: kubernetes_version is version_compare('v1.22.0', '<')
+
+- name: CoreDNS Image add tag for containerd
+  crictl:
+    name: "{{ image_repository }}/coredns:{{ coredns_version[kubernetes_version] }}"
+    repository: "{{ image_repository }}/coredns/coredns:{{ coredns_version[kubernetes_version] }}"
+    source: local
+  when: kubernetes_version is version_compare('v1.22.0', '>=')
+
+- name: delete calico deployment config
+  file:
+    path: /opt/calico.yaml
+    state: absent
 
 - name: download calico deployment
   uri:
@@ -36,8 +75,10 @@
     method: GET
     validate_certs: no
     dest: /opt
+    timeout: 60
+    force_basic_auth: yes
   register: download_result
-  until: download_result.status == 200
+  until: download_result.status == 200 or 304
   retries: 10
   delay: 5
 

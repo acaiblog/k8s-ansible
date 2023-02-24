@@ -30,9 +30,9 @@ git clone https://gitee.com/acaiblog/ansible-k8s.git
 ```
 yum install -y python3 sshpass
 pip3 install virtualenv -i https://pypi.tuna.tsinghua.edu.cn/simple
-virtualenv env-ansible
+virtualenv /root/env-ansible
 source /root/env-ansible/bin/activate
-pip3 install -r ansible-k8s/requestments.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install -r k8s-ansible/requestments.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 进入k8s-ansible目录，按照环境修改group_vars和inventory配置,部署k8s集群
 ```

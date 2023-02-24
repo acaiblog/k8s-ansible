@@ -1,0 +1,47 @@
+- name: install package for k8s
+  yum:
+    name: "{{ item }}-{{ kubernetes_version[1:] }}"
+    state: present
+  with_items:
+    - kubectl
+    - kubelet
+    - kubeadm
+
+- name: startup kubelet service
+  systemd:
+    name: kubelet
+    state: started
+    enabled: yes
+
+- name: debug coredns version
+  debug:
+    msg: "{{ coredns_version[kubernetes_version] }}"
+
+- name: Pull CoreDNs image
+  docker_image:
+    name: "{{ image_repository }}/coredns"
+    repository: "{{ image_repository }}"
+    tag: "{{ coredns_version[kubernetes_version] }}"
+    source: pull
+
+- name: add tag for coredns image
+  docker_image:
+    name: "{{ image_repository }}/coredns:{{ coredns_version[kubernetes_version] }}"
+    repository: "{{ image_repository }}/coredns/coredns:{{ coredns_version[kubernetes_version] }}"
+    source: local
+
+- name: download calico deployment
+  uri:
+    url: "https://docs.projectcalico.org/archive/{{ calico_version }}/manifests/calico.yaml"
+    method: GET
+    validate_certs: no
+    dest: /opt
+  register: download_result
+  until: download_result.status == 200
+  retries: 10
+  delay: 5
+
+- name: create calico directory
+  file:
+    path: /var/lib/calico
+    state: directory

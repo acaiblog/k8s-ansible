@@ -1,12 +1,5 @@
 ---
-- name: upgrade package for k8s
-  yum:
-    name: "{{ item }}-{{ kubernetes_version[1:] }}"
-    state: present
-  with_items:
-    - kubectl
-    - kubelet
-    - kubeadm
+- include: bootstrap.yml
 
 - name: upgrade k8s cluster
   shell: "kubeadm upgrade apply {{ kubernetes_version }} -y"
@@ -21,22 +14,6 @@
     state: restarted
     daemon_reload: yes
     name: kubelet
-
-- name: download calico deployment
-  uri:
-    url: "https://docs.projectcalico.org/archive/{{ calico_version }}/manifests/calico.yaml"
-    method: GET
-    validate_certs: no
-    dest: /opt
-  register: download_result
-  until: download_result.status == 200
-  retries: 10
-  delay: 5
-
-- name: create calico directory
-  file:
-    path: /var/lib/calico
-    state: directory
 
 - name: create calico pod for k8s cluster
   k8s:

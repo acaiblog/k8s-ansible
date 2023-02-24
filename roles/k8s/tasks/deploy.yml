@@ -1,23 +1,14 @@
 ---
 # tasks file for roles/k8s
-- name: install package for k8s
-  yum:
-    name: "{{ item }}-{{ kubernetes_version[1:] }}"
-    state: present
-  with_items:
-    - kubectl
-    - kubelet
-    - kubeadm
-
-- name: startup kubelet service
-  systemd:
-    name: kubelet
-    state: started
-    enabled: yes
+- include: bootstrap.yml
 
 - block:
+    - name: debug init command
+      debug:
+        msg: "kubeadm init --kubernetes-version={{ kubernetes_version }}  --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}  --ignore-preflight-errors=Swap  --image-repository {{ image_repository }} --log-file /var/log/kubernetes"
+
     - name: init k8s cluster
-      shell: "kubeadm init --kubernetes-version={{ kubernetes_version }}  --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}  --ignore-preflight-errors=Swap  --image-repository {{ image_repository }} --log-file /var/log/kubeadm-init.log"
+      shell: "kubeadm init --kubernetes-version={{ kubernetes_version }}  --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}  --ignore-preflight-errors=Swap  --image-repository {{ image_repository }} --log-file /var/log/kubernetes"
       failed_when: false
 
     - name: create kube directory
@@ -30,27 +21,8 @@
         src: /etc/kubernetes/admin.conf
         dest: /root/.kube/config
 
-    - name: download calico deployment
-      uri:
-        url: "https://docs.projectcalico.org/archive/{{ calico_version }}/manifests/calico.yaml"
-        method: GET
-        validate_certs: no
-        dest: /opt
-      register: download_result
-      until: download_result.status == 200
-      retries: 10
-      delay: 5
-
-    - name: create calico directory
-      file:
-        path: /var/lib/calico
-        state: directory
-
     - name: create calico pod for k8s cluster
       k8s:
         state: present
         src: "/opt/{{ k8s_network_plugin }}.yaml"
-        
-      
-
   delegate_to: localhost

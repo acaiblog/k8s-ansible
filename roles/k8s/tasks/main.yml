@@ -1,9 +1,10 @@
 ---
 # tasks file for roles/k8s
-- name: deploy k8s cluster
-  include: deploy.yml
-  when: action == "deploy"
+#- name: deploy k8s cluster
+#  include: deploy.yml
+#  when: action == "deploy"
 
-- name: upgrade k8s cluster
-  include: upgrade.yml
-  when: action == "upgrade"
+#- name: upgrade k8s cluster
+#  include: upgrade.yml
+#  when: action == "upgrade"
+- include: "{{ k8s_action }}.yml"

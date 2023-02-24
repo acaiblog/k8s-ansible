@@ -1,13 +1,13 @@
-[k8s-master]
+[k8s_master]
 10.0.0.121 hostname=k8s-master-01
 
-[k8s-worker]
+[k8s_worker]
 
 [redis:children]
-k8s-master
+k8s_master
 
 [mysql:children]
-k8s-master
+k8s_master
 
 [vgdocker:children]
 k8s
@@ -20,8 +20,8 @@ k8s
 
 
 [k8s:children]
-k8s-master
-k8s-worker
+k8s_master
+k8s_worker
 
 [all:vars]
 ansible_ssh_user=root

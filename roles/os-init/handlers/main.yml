@@ -1,2 +1,7 @@
 ---
 # handlers file for roles/init-os
+- name: restart docker service
+  systemd:
+    name: docker
+    state: restarted
+    enabled: yes

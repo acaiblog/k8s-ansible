@@ -2,7 +2,9 @@
 # tasks file for roles/k8s_clear
 - name: clear k8s cluster
   shell: "kubeadm reset -f"
-  when: inventory_hostname in groups['k8s-master'][0]
+  failed_when: false
+  when: inventory_hostname in groups['k8s_master'][0]
+
 
 - name: delete cni directory
   file:
@@ -45,8 +47,6 @@
 
 - name: save iptables rules
   shell: "service iptables save"
-  notify:
-    - Restart docker service
   failed_when: false
 
 - name: remove k8s images
@@ -56,3 +56,13 @@
     - kube-controller-manager
     - kube-scheduler
     - kube-proxy
+
+- name: remove package
+  yum:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - kubeadm
+    - kubectl
+    - kubelet
+    - docker-ce

@@ -1,4 +1,9 @@
 ---
+- name: install docker-ce 
+  yum:
+    name: docker-ce
+    state: present
+
 - name: create docker directory /etc/docker
   file:
     path: /etc/docker
@@ -8,6 +13,7 @@
   template:
     src: daemon.json.j2
     dest: /etc/docker/daemon.json
+  notify: restart docker service
 
 - name: started docker service
   systemd:

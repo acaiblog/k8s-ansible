@@ -7,5 +7,12 @@
 - include: lvm.yml
   tags: lvm
 
+- name: debug ansible version
+  debug:
+    msg: "{{ ansible_version.full }}"
+
 - include: docker.yml
-  tags: docker
+  when: kubernetes_version is version_compare('v1.22.0', '<')
+
+- include: containerd.yml
+  when: kubernetes_version is version_compare('v1.22.0', '<=')

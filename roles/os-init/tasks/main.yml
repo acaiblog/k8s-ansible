@@ -12,7 +12,7 @@
     msg: "{{ ansible_version.full }}"
 
 - include: docker.yml
-  when: kubernetes_version is version_compare('v1.22.0', '<')
+  when: kubernetes_version is version_compare('v1.23.0', '<')
 
 - include: containerd.yml
-  when: kubernetes_version is version_compare('v1.22.0', '<=')
+  when: kubernetes_version is version_compare('v1.23.0', '<=')

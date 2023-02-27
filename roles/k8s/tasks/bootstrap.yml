@@ -40,7 +40,7 @@
     image: "{{ image_repository }}/coredns"
     tag: "{{ coredns_version[kubernetes_version] }}"
     state: pull
-  when: kubernetes_version is version_compare('v1.22.0', '>=')
+  when: kubernetes_version is version_compare('v1.23.0', '>=')
 
 - name: Pull CoreDNs image for docker
   docker_image:
@@ -48,21 +48,21 @@
     repository: "{{ image_repository }}"
     tag: "{{ coredns_version[kubernetes_version] }}"
     source: pull
-  when: kubernetes_version is version_compare('v1.22.0', '<')
+  when: kubernetes_version is version_compare('v1.23.0', '<')
 
 - name: CoreDNS Image add tag for docker
   docker_image:
     name: "{{ image_repository }}/coredns:{{ coredns_version[kubernetes_version] }}"
     repository: "{{ image_repository }}/coredns/coredns:{{ coredns_version[kubernetes_version] }}"
     source: local
-  when: kubernetes_version is version_compare('v1.22.0', '<')
+  when: kubernetes_version is version_compare('v1.23.0', '<')
 
 - name: CoreDNS Image add tag for containerd
   crictl:
     name: "{{ image_repository }}/coredns:{{ coredns_version[kubernetes_version] }}"
     repository: "{{ image_repository }}/coredns/coredns:{{ coredns_version[kubernetes_version] }}"
     source: local
-  when: kubernetes_version is version_compare('v1.22.0', '>=')
+  when: kubernetes_version is version_compare('v1.23.0', '>=')
 
 - name: delete calico deployment config
   file:

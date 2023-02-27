@@ -6,3 +6,5 @@ image_repository: registry.cn-shanghai.aliyuncs.com/k8s-ansible
 # calico/flannel/canel
 calico_version: v3.21
 k8s_network_plugin: calico
+# docker/containerd
+container_engine: docker

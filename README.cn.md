@@ -31,19 +31,20 @@ git clone https://gitee.com/acaiblog/ansible-k8s.git
 yum install -y python3 sshpass
 pip3 install virtualenv -i http://pypi.douban.com/simple --trusted-host pypi.douban.com
 virtualenv /root/env-ansible
-source /root/env-ansible/bin/activate
-pip3 install -r k8s-ansible/requestments.txt -i http://pypi.douban.com/simple --trusted-host pypi.douban.com
+/root/env-ansible/bin/pip3 install -r /root/k8s-ansible/requestments.txt -i http://pypi.douban.com/simple --trusted-host pypi.douban.com
 ```
 进入k8s-ansible目录，按照环境修改group_vars和inventory配置,部署k8s集群
 ```
-cd /root/k8s-ansible/
-python deploy.py --action deploy
+source /root/env-ansible/bin/activate
+python3 /root/k8s-ansible/deploy.py --action deploy
 ```
 如果需要升级集群,在group_vars/k8s.yml配置文件中修改k8s版本和calico版本，执行以下命令升级集群
 ```
-python deploy.py --action upgrade
+source /root/env-ansible/bin/activate
+python3 /root/k8s-ansible/deploy.py --action upgrade
 ```
 如果需要清理k8s集群，执行
 ```
-python deploy.py --action destroy
+source /root/env-ansible/bin/activate
+python3 /root/k8s-ansible/deploy.py --action destroy
 ```

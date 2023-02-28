@@ -1,5 +1,8 @@
 ---
 # tasks file for roles/init-os
+- name: debug containerd engine
+  debug:
+    msg: "{{ container_engine }}"
 - include: os.yaml
 
 - include: yum.yaml

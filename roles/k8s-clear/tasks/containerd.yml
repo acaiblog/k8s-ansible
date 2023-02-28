@@ -1,0 +1,14 @@
+---
+- name: remove containerd images
+  container_image:
+    name: "{{ item }}"
+    state: absent
+    repository: "{{ image_repository }}"
+    tag: "{{ kubernetes_version }}"
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+    - kube-proxy
+  failed_when: false
+

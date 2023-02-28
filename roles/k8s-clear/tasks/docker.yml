@@ -1,0 +1,8 @@
+---
+- name: remove k8s images
+  shell: "docker rmi {{ image_repository }}/{{ item }}:{{ kubernetes_version }}"
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+    - kube-proxy

@@ -13,12 +13,21 @@
 - name: configure containerd
   shell: "containerd config default > /etc/containerd/config.toml"
 
+- name: get pause image version
+  ansible.builtin.shell: cat /etc/containerd/config.toml | grep -o 'pause:[^"]*'
+  register: pause_version
+
+- name: debug pause version
+  debug:
+    msg: "{{ pause_version.stdout }}"
+
 - name: modify containerd registry
   lineinfile:
-    dest: /etc/containerd/config.toml
-    regexp: '^sandbox_image = *'
-    line: 'sandbox_image = {{ image_repository }}'
-  notify:  restart containerd service
+    path: /etc/containerd/config.toml
+    regexp: '    sandbox_image = '
+    line: '    sandbox_image = "{{ image_repository }}/{{ pause_version.stdout }}"'
+  notify: restart containerd service
+    
   
 - name: start containerd service
   systemd:

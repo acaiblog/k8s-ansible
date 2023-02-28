@@ -23,6 +23,10 @@ def image_tag(name,repository):
     result = subprocess.check_output(cmd)
     return result
 
+def image_rmi(name,repository):
+    cmd = ['nerdctl', 'rmi', name,repository]
+    result = subprocess.check_output(cmd)
+
 def main():
     module = AnsibleModule(
         argument_spec=dict(

@@ -12,6 +12,13 @@
 
 - name: configure containerd
   shell: "containerd config default > /etc/containerd/config.toml"
+
+- name: modify containerd registry
+  lineinfile:
+    dest: /etc/containerd/config.toml
+    regexp: '^sandbox_image = *'
+    line: 'sandbox_image = {{ image_repository }}'
+  notify:  restart containerd service
   
 - name: start containerd service
   systemd:

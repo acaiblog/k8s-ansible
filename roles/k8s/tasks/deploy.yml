@@ -5,10 +5,10 @@
 - block:
     - name: debug init command
       debug:
-        msg: "kubeadm init --kubernetes-version={{ kubernetes_version }}  --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}  --ignore-preflight-errors=Swap  --image-repository {{ image_repository }} --log-file /var/log/kubernetes"
+        msg: "kubeadm init --kubernetes-version={{ kubernetes_version }}  --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}  --ignore-preflight-errors=Swap  --image-repository {{ image_repository }} --cri-socket=/run/containerd/containerd.sock"
 
     - name: init k8s cluster
-      shell: "kubeadm init --kubernetes-version={{ kubernetes_version }}  --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}  --ignore-preflight-errors=Swap  --image-repository {{ image_repository }} --log-file /var/log/kubernetes"
+      shell: "kubeadm init --kubernetes-version={{ kubernetes_version }}  --pod-network-cidr={{ pod_cidr }}  --apiserver-advertise-address={{ hostvars[inventory_hostname]['ansible_' + api_interface]['ipv4']['address'] }}  --ignore-preflight-errors=Swap  --image-repository {{ image_repository }} --cri-socket=/run/containerd/containerd.sock"
       failed_when: false
 
     - name: create kube directory

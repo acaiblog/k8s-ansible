@@ -5,3 +5,9 @@
     name: docker
     state: restarted
     enabled: yes
+
+- name: restart containerd service
+  systemd:
+    name: containerd
+    state: restarted
+    enabled: yes

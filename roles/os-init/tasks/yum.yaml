@@ -38,3 +38,10 @@
     name: chronyd
     state: started
     enabled: yes
+
+- name: Install kernel package
+  yum:
+    name: kernel-3.10.0-1160.83.1.el7
+    state: latest
+  when: enable_kernel_upgrade | bool
+  notify: Reboot server

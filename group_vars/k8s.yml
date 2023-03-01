@@ -4,7 +4,10 @@ pod_cidr: 10.244.0.0/16
 image_repository: registry.cn-shanghai.aliyuncs.com/k8s-ansible
 #image_repository: registry.cn-hangzhou.aliyuncs.com/google_containers
 # calico/flannel/canel
-calico_version: v3.24
+calico_version: v3.25
 k8s_network_plugin: calico
+kube_dashboard_namespace: kube-dashboard
+kube_dashboar_domain: www.gbcloud.top
 
 container_engine: "{% if kubernetes_version | version_compare('v1.23.0', '>') %}containerd{% else %}docker{% endif %}"
+enable_kernel_upgrade: "{% if kubernetes_version | version_compare('v1.23.0', '>') %}yes{% else %}no{% endif %}"

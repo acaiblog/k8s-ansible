@@ -33,4 +33,40 @@
     - name: set  master node untainted
       shell: "kubectl taint nodes --all node-role.kubernetes.io/control-plane-"
       when: groups['k8s_worker'] | length > 1
+  
+    - name: Getting kube-dashboard deployment file
+      template:
+        src: kube-dashboard.yml.j2
+        dest: /opt/kube-dashboard.yml
+
+    - name: Deploy kube-dashboard
+      k8s:
+        src: /opt/kube-dashboard.yml
+        state: present
+
+    - name: Create ServiceAccount for dashboard
+      k8s:
+        definition: "{{ lookup('file', 'kube-dashboard-sa.yml') }}"
+        state: present
+
+    - name: modfiy dashboard svc to nodeport
+      shell: "kubectl patch svc kubernetes-dashboard -p '{\"spec\":{\"type\":\"NodePort\"}}' -n kubernetes-dashboard"
+
+
   delegate_to: localhost
+
+- name: Generate dashboard key
+  command: openssl genrsa -out dashboard.key 1024
+  args:
+    chdir: /etc/kubernetes
+
+- name: Generate dashboard CSR
+  command: openssl req -new -key dashboard.key -out dashboard.csr
+  args:
+    chdir: /etc/kubernetes
+
+- name: Generate dashboard certificate
+  command: openssl x509 -req -days 3650 -in dashboard.csr -signkey dashboard.key -out dashboard.crt
+  args:
+    chdir: /etc/kubernetes
+

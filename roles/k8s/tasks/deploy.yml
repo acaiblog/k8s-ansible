@@ -25,4 +25,12 @@
       k8s:
         state: present
         src: "/opt/{{ k8s_network_plugin }}.yaml"
+
+    - name: get k8s group length
+      debug:
+        msg: "{{ groups['k8s_worker'] | length }}"
+
+    - name: set  master node untainted
+      shell: "kubectl taint nodes --all node-role.kubernetes.io/control-plane-"
+      when: groups['k8s_worker'] | length > 1
   delegate_to: localhost

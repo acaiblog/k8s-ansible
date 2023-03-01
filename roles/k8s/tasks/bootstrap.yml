@@ -89,5 +89,8 @@
 
 - name: create calico directory
   file:
-    path: /var/lib/calico
+    path: "{{ item }}"
     state: directory
+  with_items:
+    - /sys/fs/bpf
+    - /var/lib/calico
